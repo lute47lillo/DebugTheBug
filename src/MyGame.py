@@ -3,10 +3,12 @@ Starting Template
 """
 import arcade
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Rimbo Rogue"
+from src.RimboPlayer import RimboPlayer
 
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 800
+SCREEN_TITLE = "Rimbo Rogue"
+CHARACTER_SCALING = 0.5
 
 class MyGame(arcade.Window):
     """
@@ -19,12 +21,18 @@ class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
 
+        #Create the player
+        player1 = RimboPlayer()
+        self.player1 = player1
+
+
         arcade.set_background_color(arcade.color.AMAZON)
 
         # If you have sprite lists, you should create them here,
         # and set them to None
 
     def setup(self):
+
         # Create your sprites and sprite lists here
         pass
 
@@ -37,7 +45,9 @@ class MyGame(arcade.Window):
         # the screen to the background color, and erase what we drew last frame.
         arcade.start_render()
 
+
         # Call draw() on all your sprite lists below
+        self.player1.player_list.draw()
 
     def on_update(self, delta_time):
         """
@@ -85,6 +95,7 @@ def main():
     game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     game.setup()
     arcade.run()
+
 
 
 if __name__ == "__main__":
