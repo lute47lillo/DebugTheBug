@@ -25,11 +25,16 @@ class MyGame(arcade.Window):
         player1 = RimboPlayer()
         self.player1 = player1
 
+        #Create a list of enemies that interact or not with the player.
+        self.listEnemies = arcade.SpriteList(None)
+
+        #Created the basic engine for the movements.
+        physicsP1 = arcade.PhysicsEngineSimple(self.player1.player_sprite, self.listEnemies)
+        self.physicsP1 = physicsP1
+
 
         arcade.set_background_color(arcade.color.AMAZON)
 
-        # If you have sprite lists, you should create them here,
-        # and set them to None
 
     def setup(self):
 
@@ -48,6 +53,7 @@ class MyGame(arcade.Window):
 
         # Call draw() on all your sprite lists below
         self.player1.player_list.draw()
+        self.listEnemies.draw()
 
     def on_update(self, delta_time):
         """
@@ -55,7 +61,8 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-        pass
+        #Update the basic engine when keys are pressed.
+        self.physicsP1.update()
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -63,13 +70,15 @@ class MyGame(arcade.Window):
         For a full list of keys, see:
         http://arcade.academy/arcade.key.html
         """
-        pass
+
+        self.player1.onKeyPressed(key)
 
     def on_key_release(self, key, key_modifiers):
         """
         Called whenever the user lets off a previously pressed key.
         """
-        pass
+
+        self.player1.onKeyReleased(key)
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
         """
