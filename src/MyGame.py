@@ -5,10 +5,12 @@ import arcade
 
 from src.RimboPlayer import RimboPlayer
 
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 1024
+SCREEN_HEIGHT = 896
 SCREEN_TITLE = "Rimbo Rogue"
 CHARACTER_SCALING = 0.5
+TILE_SCALING = 0.5
+GRAVITY = 1
 
 class MyGame(arcade.Window):
     """
@@ -29,17 +31,30 @@ class MyGame(arcade.Window):
         self.listEnemies = arcade.SpriteList(None)
 
         #Created the basic engine for the movements.
-        physicsP1 = arcade.PhysicsEngineSimple(self.player1.player_sprite, self.listEnemies)
-        self.physicsP1 = physicsP1
+        self.physicsP1 = None
 
 
-        arcade.set_background_color(arcade.color.AMAZON)
+        #arcade.set_background_color(arcade.color.AMAZON)
 
 
     def setup(self):
 
         # Create your sprites and sprite lists here
-        pass
+        #Create a map
+        map_name = ":resources:tmx_maps/initialMapRR.tmx"
+        platforms_layer_name = 'BackGround'
+        my_map = arcade.tilemap.read_tmx(map_name)
+        self.wall_list = arcade.tilemap.process_layer(map_object=my_map,
+                                                      layer_name=platforms_layer_name,
+                                                      scaling=TILE_SCALING,
+                                                      use_spatial_hash=True)
+
+        if my_map.background_color:
+            arcade.set_background_color(my_map.background_color)
+
+        # Created the basic engine for the movements.
+        self.physicsP1 = arcade.PhysicsEngineSimple(self.player1.player_sprite, self.wall_list)
+
 
     def on_draw(self):
         """
@@ -50,10 +65,10 @@ class MyGame(arcade.Window):
         # the screen to the background color, and erase what we drew last frame.
         arcade.start_render()
 
-
         # Call draw() on all your sprite lists below
         self.player1.player_list.draw()
         self.listEnemies.draw()
+        self.wall_list.draw()
 
     def on_update(self, delta_time):
         """
