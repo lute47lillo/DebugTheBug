@@ -2,6 +2,7 @@
 Starting Template
 """
 import arcade
+import math
 
 from src.RimboPlayer import RimboPlayer
 
@@ -11,6 +12,7 @@ SCREEN_TITLE = "Rimbo Rogue"
 CHARACTER_SCALING = 0.5
 TILE_SCALING = 0.5
 GRAVITY = 1
+
 
 class MyGame(arcade.Window):
     """
@@ -23,25 +25,22 @@ class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
 
-        #Create the player
+        # Create the player
         player1 = RimboPlayer()
         self.player1 = player1
 
-        #Create a list of enemies that interact or not with the player.
+        # Create a list of enemies that interact or not with the player.
         self.listEnemies = arcade.SpriteList(None)
 
-        #Created the basic engine for the movements.
+        # Created the basic engine for the movements.
         self.physicsP1 = None
 
-
-        #arcade.set_background_color(arcade.color.AMAZON)
-
+        # arcade.set_background_color(arcade.color.AMAZON)
 
     def setup(self):
-
         # Create your sprites and sprite lists here
-        #Create a map
-        map_name = ":resources:tmx_maps/initialMapRR.tmx"
+        # Create a map
+        '''map_name = ":resources:tmx_maps/initialMapRR.tmx"
         platforms_layer_name = 'BackGround'
         my_map = arcade.tilemap.read_tmx(map_name)
         self.wall_list = arcade.tilemap.process_layer(map_object=my_map,
@@ -50,11 +49,10 @@ class MyGame(arcade.Window):
                                                       use_spatial_hash=True)
 
         if my_map.background_color:
-            arcade.set_background_color(my_map.background_color)
+            arcade.set_background_color(my_map.background_color)'''
 
         # Created the basic engine for the movements.
-        self.physicsP1 = arcade.PhysicsEngineSimple(self.player1.player_sprite, self.wall_list)
-
+        self.physicsP1 = arcade.PhysicsEngineSimple(self.player1.player_sprite, self.listEnemies)
 
     def on_draw(self):
         """
@@ -68,7 +66,7 @@ class MyGame(arcade.Window):
         # Call draw() on all your sprite lists below
         self.player1.player_list.draw()
         self.listEnemies.draw()
-        self.wall_list.draw()
+        # self.wall_list.draw()
 
     def on_update(self, delta_time):
         """
@@ -76,8 +74,9 @@ class MyGame(arcade.Window):
         Normally, you'll call update() on the sprite lists that
         need it.
         """
-        #Update the basic engine when keys are pressed.
+        # Update the basic engine when keys are pressed.
         self.physicsP1.update()
+
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -92,7 +91,6 @@ class MyGame(arcade.Window):
         """
         Called whenever the user lets off a previously pressed key.
         """
-
         self.player1.onKeyReleased(key)
 
     def on_mouse_motion(self, x, y, delta_x, delta_y):
@@ -119,7 +117,6 @@ def main():
     game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     game.setup()
     arcade.run()
-
 
 
 if __name__ == "__main__":
