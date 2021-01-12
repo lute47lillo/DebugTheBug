@@ -29,27 +29,20 @@ class MyGame(arcade.Window):
         player1 = RimboPlayer()
         self.player1 = player1
 
+        # Create the background
+        self.background_game = None
+
         # Create a list of enemies that interact or not with the player.
         self.listEnemies = arcade.SpriteList(None)
 
         # Created the basic engine for the movements.
         self.physicsP1 = None
 
-        # arcade.set_background_color(arcade.color.AMAZON)
-
     def setup(self):
         # Create your sprites and sprite lists here
-        # Create a map
-        '''map_name = ":resources:tmx_maps/initialMapRR.tmx"
-        platforms_layer_name = 'BackGround'
-        my_map = arcade.tilemap.read_tmx(map_name)
-        self.wall_list = arcade.tilemap.process_layer(map_object=my_map,
-                                                      layer_name=platforms_layer_name,
-                                                      scaling=TILE_SCALING,
-                                                      use_spatial_hash=True)
 
-        if my_map.background_color:
-            arcade.set_background_color(my_map.background_color)'''
+        # Create a map
+        self.background_game = arcade.load_texture(":resources:images/backgrounds/stars.png")
 
         # Created the basic engine for the movements.
         self.physicsP1 = arcade.PhysicsEngineSimple(self.player1.player_sprite, self.listEnemies)
@@ -62,11 +55,14 @@ class MyGame(arcade.Window):
         # This command should happen before we start drawing. It will clear
         # the screen to the background color, and erase what we drew last frame.
         arcade.start_render()
+        arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background_game)
 
         # Call draw() on all your sprite lists below
         self.player1.player_list.draw()
         self.listEnemies.draw()
-        # self.wall_list.draw()
+
+        if self.player1.isShooting:
+            self.player1.blaster_list.draw()
 
     def on_update(self, delta_time):
         """
@@ -76,7 +72,8 @@ class MyGame(arcade.Window):
         """
         # Update the basic engine when keys are pressed.
         self.physicsP1.update()
-
+        if self.player1.isShooting:
+            self.player1.blaster_sprite.update()
 
     def on_key_press(self, key, key_modifiers):
         """
