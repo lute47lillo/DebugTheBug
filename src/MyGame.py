@@ -1,26 +1,24 @@
 """
-Starting Template
+Author: Lute Lillo Portero
 """
+
 import arcade
-import math
+import random
+
 
 from src.RimboPlayer import RimboPlayer
+from src.BugEnemy import BugEnemy
 
 SCREEN_WIDTH = 1024
 SCREEN_HEIGHT = 896
-SCREEN_TITLE = "Rimbo Rogue"
+SCREEN_TITLE = "Debug the bug"
 CHARACTER_SCALING = 0.5
 TILE_SCALING = 0.5
 GRAVITY = 1
+SEMICOLON_MAX = 15
 
 
 class MyGame(arcade.Window):
-    """
-    Main application class.
-    NOTE: Go ahead and delete the methods you don't need.
-    If you do need a method, delete the 'pass' and replace it
-    with your own code. Don't leave 'pass' in this program.
-    """
 
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
@@ -28,6 +26,10 @@ class MyGame(arcade.Window):
         # Create the player
         player1 = RimboPlayer()
         self.player1 = player1
+
+        # Create SemiColon Enemy
+        bug_enemy = BugEnemy()
+        self.bug_enemy = bug_enemy
 
         # Create the background
         self.background_game = None
@@ -42,7 +44,7 @@ class MyGame(arcade.Window):
         # Create your sprites and sprite lists here
 
         # Create a map
-        self.background_game = arcade.load_texture(":resources:images/backgrounds/stars.png")
+        self.background_game = arcade.load_texture(":resources:images/backgrounds/Matrix_background.jpeg")
 
         # Created the basic engine for the movements.
         self.physicsP1 = arcade.PhysicsEngineSimple(self.player1.player_sprite, self.listEnemies)
@@ -61,52 +63,50 @@ class MyGame(arcade.Window):
         self.player1.player_list.draw()
         self.listEnemies.draw()
 
+        # Draw the enemies
+        self.bug_enemy.bug_list.draw()
+
         if self.player1.isShooting:
             self.player1.blaster_list.draw()
 
     def on_update(self, delta_time):
         """
         All the logic to move, and the game logic goes here.
-        Normally, you'll call update() on the sprite lists that
-        need it.
         """
+
         # Update the basic engine when keys are pressed.
         self.physicsP1.update()
+
         if self.player1.isShooting:
-            self.player1.blaster_sprite.update()
+            self.player1.blaster_list.update()
+
+        # Spawn enemies randomly. If there are more than 10 do not spawn more.
+        if random.random() < 0.03 and self.bug_enemy.count < 10:
+            self.bug_enemy.bugSprite()
+
+        self.bug_enemy.bug_list.update()
+
+        # Makes the bugs follow the player
+        i = 0
+        while i < self.bug_enemy.count:
+            self.bug_enemy.followSprite(self.player1.player_sprite, self.bug_enemy.bug_list[i])
+            i += 1
+
+        # Get collisions of blasters with the bugs and kill them
+        for shots in self.player1.blaster_list:
+            bug_hit_list = arcade.check_for_collision_with_list(shots, self.bug_enemy.bug_list)
+            for bugs in bug_hit_list:
+                bugs.remove_from_sprite_lists()
+                shots.remove_from_sprite_lists()
+                self.bug_enemy.count -= 1
 
     def on_key_press(self, key, key_modifiers):
-        """
-        Called whenever a key on the keyboard is pressed.
-        For a full list of keys, see:
-        http://arcade.academy/arcade.key.html
-        """
 
         self.player1.onKeyPressed(key)
 
     def on_key_release(self, key, key_modifiers):
-        """
-        Called whenever the user lets off a previously pressed key.
-        """
+
         self.player1.onKeyReleased(key)
-
-    def on_mouse_motion(self, x, y, delta_x, delta_y):
-        """
-        Called whenever the mouse moves.
-        """
-        pass
-
-    def on_mouse_press(self, x, y, button, key_modifiers):
-        """
-        Called when the user presses a mouse button.
-        """
-        pass
-
-    def on_mouse_release(self, x, y, button, key_modifiers):
-        """
-        Called when a user releases a mouse button.
-        """
-        pass
 
 
 def main():

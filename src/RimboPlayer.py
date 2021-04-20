@@ -1,6 +1,8 @@
 import arcade
 import math
 
+from src.BugEnemy import BugEnemy
+
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 800
 CHARACTER_SCALING = 0.5
@@ -9,16 +11,18 @@ PLAYER_MOVEMENT_SPEED = 5
 SPEED_ANGLE = 5
 BLASTER_SPEED = 8
 
-
 class RimboPlayer:
 
     def __init__(self):
 
+        #Create player and blaster lists and sprites
         self.player_sprite = None
         self.player_list = None
 
-        self.blaster_sprite = None
-        self.blaster_list = None
+        enemy = BugEnemy()
+        self.enemy = enemy
+
+        self.blaster_list = arcade.SpriteList()
         self.isShooting = False
 
         # Attributes of player
@@ -26,7 +30,6 @@ class RimboPlayer:
         self.angle = 0
         self.change_angle = 0
         self.playerSprite()
-
 
     # Create Sprite of the player.
     def playerSprite(self):
@@ -37,15 +40,16 @@ class RimboPlayer:
         self.player_sprite.center_y = 500
         self.player_list.append(self.player_sprite)
 
-    # Need to separate in two methods, init the sprite and then update the sprite of shoooting
+    # Need to separate in two methods, init the sprite and then update the sprite of shooting
     def blasterSprite(self, blaster_center_x, blaster_center_y):
-        self.blaster_list = arcade.SpriteList()
+
+        # Create image of the blast
         imageBlaster = ":resources:images/space_shooter/laserBlue01.png"
         self.blaster_sprite = arcade.Sprite(imageBlaster, BLASTER_SCALING)
 
+        # Get current position of the player
         self.blaster_sprite.center_x = blaster_center_x
         self.blaster_sprite.center_y = blaster_center_y
-        self.blaster_list.append(self.blaster_sprite)
         self.isShooting = True
 
     def onKeyPressed(self, key):
@@ -67,7 +71,7 @@ class RimboPlayer:
         if key == arcade.key.J:
             pass
 
-        self.update()
+        self.shipUpdate()
 
     # Update it and add the condition when both are pressed and handle it.
     def onKeyReleased(self, key):
@@ -81,13 +85,12 @@ class RimboPlayer:
         if key == arcade.key.J:
             self.blasterSprite(self.player_sprite.center_x, self.player_sprite.center_y)
             self.blaster_sprite.angle = self.player_sprite.angle
-            #self.isShooting = True
             self.shotUpdate()
 
-        self.update()
+        self.shipUpdate()
 
-    def update(self):
-        # Rotate the ship
+    # Rotate the ship
+    def shipUpdate(self):
 
         self.player_sprite.angle += self.player_sprite.change_angle
 
@@ -107,6 +110,9 @@ class RimboPlayer:
 
         self.blaster_sprite.center_x += self.blaster_sprite.change_x
         self.blaster_sprite.center_y += self.blaster_sprite.change_y
+
+        # Append the last blast to the blaster list. TODO: Create a pool object list for memory management.
+        self.blaster_list.append(self.blaster_sprite)
 
 
 
