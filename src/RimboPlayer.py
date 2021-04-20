@@ -3,27 +3,33 @@ import math
 
 from src.BugEnemy import BugEnemy
 
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 1324
+SCREEN_HEIGHT = 796
 CHARACTER_SCALING = 0.5
-BLASTER_SCALING = 0.25
+BLASTER_SCALING = 0.30
 PLAYER_MOVEMENT_SPEED = 5
 SPEED_ANGLE = 5
 BLASTER_SPEED = 8
+SHOOT_SOUND = 0.2
+
 
 class RimboPlayer:
 
     def __init__(self):
 
-        #Create player and blaster lists and sprites
+        # Create player and blaster lists and sprites
         self.player_sprite = None
         self.player_list = None
 
+        # Instance of bug enemy
         enemy = BugEnemy()
         self.enemy = enemy
 
         self.blaster_list = arcade.SpriteList()
         self.isShooting = False
+
+        # Set sound for shooting the blaster
+        self.shoot_sound = arcade.load_sound(":resources:sounds/laser2.wav")
 
         # Attributes of player
         self.speed = 0
@@ -36,8 +42,8 @@ class RimboPlayer:
         self.player_list = arcade.SpriteList()
         image_source = ":resources:images/space_shooter/playerShip1_green.png"
         self.player_sprite = arcade.Sprite(image_source, CHARACTER_SCALING)
-        self.player_sprite.center_x = 300
-        self.player_sprite.center_y = 500
+        self.player_sprite.center_x = 670
+        self.player_sprite.center_y = 380
         self.player_list.append(self.player_sprite)
 
     # Need to separate in two methods, init the sprite and then update the sprite of shooting
@@ -86,6 +92,7 @@ class RimboPlayer:
             self.blasterSprite(self.player_sprite.center_x, self.player_sprite.center_y)
             self.blaster_sprite.angle = self.player_sprite.angle
             self.shotUpdate()
+            arcade.play_sound(self.shoot_sound, SHOOT_SOUND)
 
         self.shipUpdate()
 
@@ -97,8 +104,20 @@ class RimboPlayer:
         self.player_sprite.change_x = -math.sin(math.radians(self.player_sprite.angle)) * self.player_sprite.speed
         self.player_sprite.change_y = math.cos(math.radians(self.player_sprite.angle)) * self.player_sprite.speed
 
-        self.player_sprite.center_x += self.player_sprite.change_x
-        self.player_sprite.center_y += self.player_sprite.change_y
+        # Add border limitations to the movement of the player
+        if self.player_sprite.center_x < 10:
+            self.player_sprite.center_x = 10
+        elif self.player_sprite.center_x > SCREEN_WIDTH - 10:
+            self.player_sprite.center_x = SCREEN_WIDTH - 10
+        else:
+            self.player_sprite.center_x += self.player_sprite.change_x
+
+        if self.player_sprite.center_y < 10:
+            self.player_sprite.center_y = 10
+        elif self.player_sprite.center_y > SCREEN_HEIGHT - 10:
+            self.player_sprite.center_y = SCREEN_HEIGHT - 10
+        else:
+            self.player_sprite.center_y += self.player_sprite.change_y
 
     # Rotate and create the shooting of the blaster
     def shotUpdate(self):
@@ -113,13 +132,3 @@ class RimboPlayer:
 
         # Append the last blast to the blaster list. TODO: Create a pool object list for memory management.
         self.blaster_list.append(self.blaster_sprite)
-
-
-
-
-
-
-
-
-
-

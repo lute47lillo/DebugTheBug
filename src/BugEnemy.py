@@ -3,8 +3,8 @@ import random
 import math
 
 
-SCREEN_WIDTH = 1000
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 1324
+SCREEN_HEIGHT = 796
 CHARACTER_SCALING = 0.5
 SEMICOLON_MAX = 15
 SPRITE_SPEED = 0.5
@@ -19,6 +19,7 @@ class BugEnemy:
 
         self.bugSprite()
 
+    # Create the bug sprite and defines its original position
     def bugSprite(self):
         image_source = ":resources:images/enemies/fly.png"
 
@@ -32,6 +33,7 @@ class BugEnemy:
         self.bug_list.append(self.bug_sprite)
         self.count += 1
 
+    # Following of player movement
     def followSprite(self, player, enemy):
 
         enemy.center_x += enemy.change_x
