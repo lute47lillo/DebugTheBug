@@ -10,14 +10,22 @@ import time
 from src.RimboPlayer import RimboPlayer
 from src.BugEnemy import BugEnemy
 
+# Init variables
 SCREEN_WIDTH = 1324
 SCREEN_HEIGHT = 796
 SCREEN_TITLE = "Debug the bug"
-CHARACTER_SCALING = 0.5
 TILE_SCALING = 0.5
+
+# Attributes
+CHARACTER_SCALING = 0.5
 GRAVITY = 1
-SEMICOLON_MAX = 15
+LIFE_SCALING = 0.1
+
+
+# Sounds
 MUSIC_VOLUME = 0.2
+COLLISION_SOUND = 0.15
+GAMEOVER_SOUND = 0.4
 
 
 class MyGame(arcade.Window):
@@ -29,7 +37,13 @@ class MyGame(arcade.Window):
         player1 = RimboPlayer()
         self.player1 = player1
 
-        # Create SemiColon Enemy
+        # Create attributes of the overall game
+        self.player_health = 10
+        self.player_health_sprite = None
+        self.player_health_list = arcade.SpriteList()
+        self.game_over = False
+
+        # Create Bug Enemy
         bug_enemy = BugEnemy()
         self.bug_enemy = bug_enemy
 
@@ -45,6 +59,8 @@ class MyGame(arcade.Window):
         # Create different sound effects
         self.kill_sound = None
         self.shoot_sound = None
+        self.collision_player_sound = None
+        self.game_over_sound = None
 
         # Attributes of background music
         self.music_list = []
@@ -70,6 +86,14 @@ class MyGame(arcade.Window):
         # Set sound for killing bugs
         self.kill_sound = arcade.load_sound(":resources:sounds/hit4.wav")
 
+        # Set sound for collision between player and bugs
+        self.collision_player_sound = arcade.load_sound(":resources:sounds/hurt2.wav")
+
+        # Set the players lives
+        self.players_health()
+
+        self.game_over_sound = arcade.load_sound(":resources:sounds/gameover2.wav")
+
     def on_draw(self):
 
         # This command should happen before we start drawing. It will clear
@@ -77,9 +101,14 @@ class MyGame(arcade.Window):
         arcade.start_render()
         arcade.draw_lrwh_rectangle_textured(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, self.background_game)
 
+        if self.game_over:
+            output = "GAME OVER"
+            arcade.draw_text(output, 500, SCREEN_HEIGHT/2, arcade.color.PURPLE_HEART, 70, bold=True)
+
         # Call draw() on all your sprite lists below
         self.player1.player_list.draw()
         self.listEnemies.draw()
+        self.player_health_list.draw()
 
         # Draw the enemies
         self.bug_enemy.bug_list.draw()
@@ -116,6 +145,17 @@ class MyGame(arcade.Window):
                 arcade.play_sound(self.kill_sound)
                 self.bug_enemy.count -= 1
 
+        # Get collisions of bugs with player
+        for bugs in self.bug_enemy.bug_list:
+            if arcade.check_for_collision(bugs, self.player1.player_sprite) and not self.game_over:
+                arcade.play_sound(self.collision_player_sound)
+                self.player_health_list.pop().remove_from_sprite_lists()
+                self.bug_enemy.count -= 1
+                self.player_health -= 1
+                bugs.remove_from_sprite_lists()
+                self.player_health_list.update()
+                self.check_player_life()
+
         # Get the position on the stream of the song to repeatedly play it
         position = self.music.get_stream_position(self.current_player)
         if position == 0.0:
@@ -138,6 +178,25 @@ class MyGame(arcade.Window):
     # Spawn coffee booster
     def coffee_buster(self):
         pass
+
+    def players_health(self):
+        image_source = "/Users/lutelillo/Desktop/DebugTheBug/lib/python3.8/site-packages/arcade/resources/images/createdSprites/heart_pixel.png"
+        offset = 25
+        for i in range(self.player_health):
+            self.player_health_sprite = arcade.Sprite(image_source, LIFE_SCALING)
+            self.player_health_sprite.center_x = 50 + offset
+            self.player_health_sprite.center_y = 20
+            self.player_health_list.append(self.player_health_sprite)
+            offset += 25
+
+    def check_player_life(self):
+
+        # Check health of player
+        if self.player_health == 0 and not self.game_over:
+            self.player1.player_sprite.remove_from_sprite_lists()
+            self.player1.player_list.update()
+            arcade.play_sound(self.game_over_sound, GAMEOVER_SOUND)
+            self.game_over = True
 
 
 def main():
