@@ -39,11 +39,17 @@ class RimboPlayer:
 
     # Create Sprite of the player.
     def playerSprite(self):
+
         self.player_list = arcade.SpriteList()
-        image_source = ":resources:images/space_shooter/playerShip1_green.png"
+
+        image_source = "/Users/lutelillo/Desktop/DebugTheBug/lib/python3.8/" \
+                       "site-packages/arcade/resources/images/createdSprites/booster_player.png"
+
         self.player_sprite = arcade.Sprite(image_source, CHARACTER_SCALING)
+
         self.player_sprite.center_x = 670
         self.player_sprite.center_y = 380
+
         self.player_list.append(self.player_sprite)
 
     # Need to separate in two methods, init the sprite and then update the sprite of shooting
@@ -132,3 +138,5 @@ class RimboPlayer:
 
         # Append the last blast to the blaster list. TODO: Create a pool object list for memory management.
         self.blaster_list.append(self.blaster_sprite)
+
+

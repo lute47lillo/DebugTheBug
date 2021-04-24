@@ -2,7 +2,6 @@
 Author: Lute Lillo Portero
 """
 
-# TODO: Add coffee booster functionality
 # TODO: Create another enemy that shoots to the player
 # TODO: Create Round system
 
@@ -24,6 +23,7 @@ TILE_SCALING = 0.5
 CHARACTER_SCALING = 0.5
 GRAVITY = 1
 LIFE_SCALING = 0.1
+BOOSTER_SCALING = 1
 
 
 # Sounds
@@ -41,15 +41,27 @@ class MyGame(arcade.Window):
         player1 = RimboPlayer()
         self.player1 = player1
 
-        # Create attributes of the overall game
+        # Create attributes of the player health
         self.player_health = 10
         self.player_health_sprite = None
         self.player_health_list = arcade.SpriteList()
         self.game_over = False
 
+        # Set the score for debugging bugs
+        self.score = 0
+        self.actual_round = 0
+
         # Create Bug Enemy
         bug_enemy = BugEnemy()
         self.bug_enemy = bug_enemy
+
+        # Create coffee booster sprite
+        self.coffee_sprite = None
+        self.coffee_list = arcade.SpriteList()
+        self.boosted = False
+        self.coffee_count = 0
+        self.booster_sprite = None
+        self.boost_list = arcade.SpriteList()
 
         # Create the background
         self.background_game = None
@@ -59,6 +71,7 @@ class MyGame(arcade.Window):
 
         # Created the basic engine for the movements.
         self.physicsP1 = None
+        self.total_time = 0.0
 
         # Create different sound effects
         self.kill_sound = None
@@ -79,6 +92,7 @@ class MyGame(arcade.Window):
 
         # Created the basic engine for the movements.
         self.physicsP1 = arcade.PhysicsEngineSimple(self.player1.player_sprite, self.listEnemies)
+        self.total_time = 0.0
 
         # List of music
         self.music_list = [":resources:music/funkyrobot.mp3"]
@@ -92,6 +106,9 @@ class MyGame(arcade.Window):
 
         # Set sound for collision between player and bugs
         self.collision_player_sound = arcade.load_sound(":resources:sounds/hurt2.wav")
+
+        # Set the sound for picking up the booster
+        self.pick_booster_sound = arcade.load_sound(":resources:sounds/upgrade1.wav")
 
         # Set the players lives
         self.players_health()
@@ -107,7 +124,12 @@ class MyGame(arcade.Window):
 
         if self.game_over:
             output = "GAME OVER"
-            arcade.draw_text(output, 500, SCREEN_HEIGHT/2, arcade.color.PURPLE_HEART, 70, bold=True)
+            arcade.draw_text(output, 400, SCREEN_HEIGHT/2, arcade.color.PURPLE_HEART, 70, bold=True)
+
+        # Set up the score for bugs killed
+        output_score = f"Bugs debugged {self.score}"
+        arcade.draw_rectangle_filled(1395, 740, 800, 50, arcade.color.BLACK)
+        arcade.draw_text(output_score, 1000, 720, arcade.color.WHITE, 30, bold=True, italic=True)
 
         # Call draw() on all your sprite lists below
         self.player1.player_list.draw()
@@ -120,6 +142,9 @@ class MyGame(arcade.Window):
         if self.player1.isShooting:
             self.player1.blaster_list.draw()
 
+        self.coffee_list.draw()
+        self.boost_list.draw()
+
     def on_update(self, delta_time):
 
         # Update the basic engine when keys are pressed.
@@ -129,7 +154,7 @@ class MyGame(arcade.Window):
             self.player1.blaster_list.update()
 
         # Spawn enemies randomly. If there are more than 10 do not spawn more.
-        if random.random() < 0.03 and self.bug_enemy.count < 10:
+        if random.random() < 0.03 and self.bug_enemy.count < 10 and self.actual_round == 0:
             self.bug_enemy.bugSprite()
 
         self.bug_enemy.bug_list.update()
@@ -148,10 +173,11 @@ class MyGame(arcade.Window):
                 shots.remove_from_sprite_lists()
                 arcade.play_sound(self.kill_sound)
                 self.bug_enemy.count -= 1
+                self.score += 1
 
         # Get collisions of bugs with player
         for bugs in self.bug_enemy.bug_list:
-            if arcade.check_for_collision(bugs, self.player1.player_sprite) and not self.game_over:
+            if arcade.check_for_collision(bugs, self.player1.player_sprite) and not self.game_over and not self.boosted:
                 arcade.play_sound(self.collision_player_sound)
                 self.player_health_list.pop().remove_from_sprite_lists()
                 self.bug_enemy.count -= 1
@@ -164,6 +190,19 @@ class MyGame(arcade.Window):
         position = self.music.get_stream_position(self.current_player)
         if position == 0.0:
             self.play_song()
+
+        self.total_time += delta_time
+
+        # Start timer for booster. Disappears after x seconds
+        start_booster = self.coffee_booster(self.total_time)
+        stop_booster = start_booster + 13
+        if self.boosted:
+            if self.total_time > stop_booster:
+                self.boosted = False
+                self.boost_list.pop().remove_from_sprite_lists()
+
+        self.coffee_list.update()
+        self.boost_list.update()
 
     def on_key_press(self, key, key_modifiers):
 
@@ -180,11 +219,46 @@ class MyGame(arcade.Window):
         time.sleep(0.03)
 
     # Spawn coffee booster
-    def coffee_buster(self):
-        pass
+    def coffee_booster(self, actual_time):
 
+        now = 0
+        image_source = "/Users/lutelillo/Desktop/DebugTheBug/lib/python3.8/" \
+                       "site-packages/arcade/resources/images/createdSprites/coffee_boost.png"
+
+        # Create the booster
+        if self.actual_round == 0 and self.coffee_count < 1:
+            self.coffee_sprite = arcade.Sprite(image_source, BOOSTER_SCALING)
+            rand_center_x = random.randrange(SCREEN_WIDTH)
+            rand_center_y = random.randrange(SCREEN_HEIGHT)
+            self.coffee_sprite.center_x = rand_center_x
+            self.coffee_sprite.center_y = rand_center_y
+            self.coffee_list.append(self.coffee_sprite)
+            self.coffee_count += 1
+
+        # Check if player picks it up
+        for coffee in self.coffee_list:
+            if arcade.check_for_collision(self.player1.player_sprite, coffee):
+                arcade.play_sound(self.pick_booster_sound)
+                self.coffee_list.pop().remove_from_sprite_lists()
+                self.boosted = True
+                now = actual_time
+
+                # Create visual aid to indicate that the booster has been picked up
+                boost_source = "/Users/lutelillo/Desktop/DebugTheBug/lib/python3.8/" \
+                               "site-packages/arcade/resources/images/createdSprites/powerup.png"
+
+                self.booster_sprite = arcade.Sprite(boost_source, BOOSTER_SCALING)
+                self.booster_sprite.center_x = 50
+                self.booster_sprite.center_y = SCREEN_HEIGHT - 50
+                self.boost_list.append(self.booster_sprite)
+
+        return now
+
+    # Creates the visual aid for the remaining lives of the player
     def players_health(self):
-        image_source = "/Users/lutelillo/Desktop/DebugTheBug/lib/python3.8/site-packages/arcade/resources/images/createdSprites/heart_pixel.png"
+
+        image_source = "/Users/lutelillo/Desktop/DebugTheBug/lib/python3.8/" \
+                       "site-packages/arcade/resources/images/createdSprites/heart_pixel.png"
         offset = 25
         for i in range(self.player_health):
             self.player_health_sprite = arcade.Sprite(image_source, LIFE_SCALING)
