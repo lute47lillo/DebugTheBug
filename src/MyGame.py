@@ -2,6 +2,10 @@
 Author: Lute Lillo Portero
 """
 
+# TODO: Add coffee booster functionality
+# TODO: Create another enemy that shoots to the player
+# TODO: Create Round system
+
 import arcade
 import random
 import time
