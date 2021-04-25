@@ -2,7 +2,6 @@
 Author: Lute Lillo Portero
 """
 
-# TODO: Fix Round system for Round 3
 
 import arcade
 import random
@@ -186,6 +185,7 @@ class MyGame(arcade.Window):
 
         # Get collisions of bugs with player
         self.check_player_shot()
+        self.check_bug_collision()
 
         # Get the position on the stream of the song to repeatedly play it
         position = self.music.get_stream_position(self.current_player)
@@ -217,6 +217,18 @@ class MyGame(arcade.Window):
 
         self.player1.onKeyReleased(key)
 
+    # Get collisions of bugs with player
+    def check_bug_collision(self):
+        for bugs in self.bug_enemy.bug_list:
+            if arcade.check_for_collision(bugs, self.player1.player_sprite) and not self.game_over:
+                arcade.play_sound(self.collision_player_sound)
+                self.player_health_list.pop().remove_from_sprite_lists()
+                self.bug_enemy.count -= 1
+                self.player_health -= 1
+                bugs.remove_from_sprite_lists()
+                self.player_health_list.update()
+                self.check_player_life()
+
     # Get collisions of blasters with the bugs and kill them
     def check_bug_killed(self):
 
@@ -236,7 +248,6 @@ class MyGame(arcade.Window):
                 self.linux_enemy.linux_health -= 1
                 arcade.play_sound(self.hit_linux_sound)
                 self.check_linux_life()
-                print(self.linux_enemy.linux_health)
                 shots.remove_from_sprite_lists()
 
     # Check remaining life of linux enemies
@@ -252,6 +263,7 @@ class MyGame(arcade.Window):
 
             self.score += 5
             self.actual_round = 3
+            self.count_linux = 0
 
     # Get collisions of linux blasts with player
     def check_player_shot(self):
@@ -332,10 +344,6 @@ class MyGame(arcade.Window):
     # Checks how many bugs the player has debugged
     def check_debugs(self):
 
-        # Double check for not changing when getting to round 3
-        if self.actual_round == 3:
-            self.actual_round = 3
-
         # Updates rounds based on enemies killed
         if self.score >= 15:
             self.actual_round = 1
@@ -346,7 +354,8 @@ class MyGame(arcade.Window):
     def update_round(self):
 
         # Check for number of bugs killed
-        self.check_debugs()
+        if self.actual_round != 3:
+            self.check_debugs()
 
         self.bug_enemy.bug_list.update()
 
@@ -391,7 +400,7 @@ class MyGame(arcade.Window):
 
             for linux in self.linux_enemy.linux_list:
 
-                if random.random() < 0.01:
+                if random.random() < 0.02:
                     self.linux_enemy.shoot_player(1, linux)
                     self.linux_enemy.shoot_player(0, linux)
                     self.linux_enemy.linux_bullet_list.update()
