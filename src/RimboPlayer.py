@@ -136,7 +136,7 @@ class RimboPlayer:
         self.blaster_sprite.center_x += self.blaster_sprite.change_x
         self.blaster_sprite.center_y += self.blaster_sprite.change_y
 
-        # Append the last blast to the blaster list. TODO: Create a pool object list for memory management.
+        # Append the last blast to the blaster list.
         self.blaster_list.append(self.blaster_sprite)
 
 

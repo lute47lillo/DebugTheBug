@@ -2,14 +2,13 @@
 Author: Lute Lillo Portero
 """
 
-# TODO: Create another enemy that shoots to the player
-# TODO: Create Round system
+# TODO: Fix Round system for Round 3
 
 import arcade
 import random
 import time
 
-
+from src.LinuxEnemy import LinuxEnemy
 from src.RimboPlayer import RimboPlayer
 from src.BugEnemy import BugEnemy
 
@@ -24,7 +23,7 @@ CHARACTER_SCALING = 0.5
 GRAVITY = 1
 LIFE_SCALING = 0.1
 BOOSTER_SCALING = 1
-
+BLASTER_SCALING = 0.30
 
 # Sounds
 MUSIC_VOLUME = 0.2
@@ -55,6 +54,13 @@ class MyGame(arcade.Window):
         bug_enemy = BugEnemy()
         self.bug_enemy = bug_enemy
 
+        # Create Linux Enemy
+        linux_enemy = LinuxEnemy()
+        self.linux_enemy = linux_enemy
+        self.count_linux = 0
+        self.linux1 = None
+        self.linux2 = None
+
         # Create coffee booster sprite
         self.coffee_sprite = None
         self.coffee_list = arcade.SpriteList()
@@ -78,6 +84,8 @@ class MyGame(arcade.Window):
         self.shoot_sound = None
         self.collision_player_sound = None
         self.game_over_sound = None
+        self.pick_booster_sound = None
+        self.hit_linux_sound = None
 
         # Attributes of background music
         self.music_list = []
@@ -110,6 +118,9 @@ class MyGame(arcade.Window):
         # Set the sound for picking up the booster
         self.pick_booster_sound = arcade.load_sound(":resources:sounds/upgrade1.wav")
 
+        # Set sound for hitting linux enemies
+        self.hit_linux_sound = arcade.load_sound(":resources:sounds/hit2.wav")
+
         # Set the players lives
         self.players_health()
 
@@ -131,13 +142,19 @@ class MyGame(arcade.Window):
         arcade.draw_rectangle_filled(1395, 740, 800, 50, arcade.color.BLACK)
         arcade.draw_text(output_score, 1000, 720, arcade.color.WHITE, 30, bold=True, italic=True)
 
-        # Call draw() on all your sprite lists below
+        # Draw player and its lives
         self.player1.player_list.draw()
-        self.listEnemies.draw()
         self.player_health_list.draw()
 
         # Draw the enemies
+        self.listEnemies.draw()
         self.bug_enemy.bug_list.draw()
+
+        if self.linux_enemy.exist:
+            self.linux_enemy.linux_list.draw()
+
+        if self.linux_enemy.linux_isShooting:
+            self.linux_enemy.linux_bullet_list.draw()
 
         if self.player1.isShooting:
             self.player1.blaster_list.draw()
@@ -153,38 +170,22 @@ class MyGame(arcade.Window):
         if self.player1.isShooting:
             self.player1.blaster_list.update()
 
-        # Spawn enemies randomly. If there are more than 10 do not spawn more.
-        if random.random() < 0.03 and self.bug_enemy.count < 10 and self.actual_round == 0:
-            self.bug_enemy.bugSprite()
+        if self.linux_enemy.exist:
+            self.linux_enemy.linux_list.update()
 
-        self.bug_enemy.bug_list.update()
+        if self.linux_enemy.linux_isShooting:
+            self.linux_enemy.linux_bullet_list.update()
 
-        # Makes the bugs follow the player
-        i = 0
-        while i < self.bug_enemy.count:
-            self.bug_enemy.followSprite(self.player1.player_sprite, self.bug_enemy.bug_list[i])
-            i += 1
+        self.update_round()
 
         # Get collisions of blasters with the bugs and kill them
-        for shots in self.player1.blaster_list:
-            bug_hit_list = arcade.check_for_collision_with_list(shots, self.bug_enemy.bug_list)
-            for bugs in bug_hit_list:
-                bugs.remove_from_sprite_lists()
-                shots.remove_from_sprite_lists()
-                arcade.play_sound(self.kill_sound)
-                self.bug_enemy.count -= 1
-                self.score += 1
+        self.check_bug_killed()
+
+        # Check collisions of blaster with linux enemies and kill them
+        self.check_linux_killed()
 
         # Get collisions of bugs with player
-        for bugs in self.bug_enemy.bug_list:
-            if arcade.check_for_collision(bugs, self.player1.player_sprite) and not self.game_over and not self.boosted:
-                arcade.play_sound(self.collision_player_sound)
-                self.player_health_list.pop().remove_from_sprite_lists()
-                self.bug_enemy.count -= 1
-                self.player_health -= 1
-                bugs.remove_from_sprite_lists()
-                self.player_health_list.update()
-                self.check_player_life()
+        self.check_player_shot()
 
         # Get the position on the stream of the song to repeatedly play it
         position = self.music.get_stream_position(self.current_player)
@@ -195,7 +196,7 @@ class MyGame(arcade.Window):
 
         # Start timer for booster. Disappears after x seconds
         start_booster = self.coffee_booster(self.total_time)
-        stop_booster = start_booster + 13
+        stop_booster = start_booster + 15
         if self.boosted:
             if self.total_time > stop_booster:
                 self.boosted = False
@@ -204,6 +205,10 @@ class MyGame(arcade.Window):
         self.coffee_list.update()
         self.boost_list.update()
 
+        if self.linux_enemy.exist:
+            for i in self.linux_enemy.linux_list:
+                self.linux_enemy.move_enemy(i)
+
     def on_key_press(self, key, key_modifiers):
 
         self.player1.onKeyPressed(key)
@@ -211,6 +216,54 @@ class MyGame(arcade.Window):
     def on_key_release(self, key, key_modifiers):
 
         self.player1.onKeyReleased(key)
+
+    # Get collisions of blasters with the bugs and kill them
+    def check_bug_killed(self):
+
+        for shots in self.player1.blaster_list:
+            bug_hit_list = arcade.check_for_collision_with_list(shots, self.bug_enemy.bug_list)
+            for bugs in bug_hit_list:
+                bugs.remove_from_sprite_lists()
+                shots.remove_from_sprite_lists()
+                arcade.play_sound(self.kill_sound)
+                self.bug_enemy.count -= 1
+                self.score += 1
+
+    # Check collisions of blaster with linux enemies and kill them
+    def check_linux_killed(self):
+        for shots in self.player1.blaster_list:
+            if arcade.check_for_collision_with_list(shots, self.linux_enemy.linux_list) and not self.game_over:
+                self.linux_enemy.linux_health -= 1
+                arcade.play_sound(self.hit_linux_sound)
+                self.check_linux_life()
+                print(self.linux_enemy.linux_health)
+                shots.remove_from_sprite_lists()
+
+    # Check remaining life of linux enemies
+    def check_linux_life(self):
+
+        if self.linux_enemy.linux_health == 10:
+            self.linux_enemy.linux_list.pop().remove_from_sprite_lists()
+            self.score += 5
+
+        if self.linux_enemy.linux_health == 0:
+            for still in self.linux_enemy.linux_list:
+                still.remove_from_sprite_lists()
+
+            self.score += 5
+            self.actual_round = 3
+
+    # Get collisions of linux blasts with player
+    def check_player_shot(self):
+
+        for ls in self.linux_enemy.linux_bullet_list:
+            if arcade.check_for_collision(ls, self.player1.player_sprite) and not self.game_over and not self.boosted:
+                arcade.play_sound(self.collision_player_sound)
+                self.player_health_list.pop().remove_from_sprite_lists()
+                self.player_health -= 1
+                ls.remove_from_sprite_lists()
+                self.player_health_list.update()
+                self.check_player_life()
 
     # Plays background music
     def play_song(self):
@@ -226,7 +279,7 @@ class MyGame(arcade.Window):
                        "site-packages/arcade/resources/images/createdSprites/coffee_boost.png"
 
         # Create the booster
-        if self.actual_round == 0 and self.coffee_count < 1:
+        if self.actual_round == 1 and self.coffee_count < 1:
             self.coffee_sprite = arcade.Sprite(image_source, BOOSTER_SCALING)
             rand_center_x = random.randrange(SCREEN_WIDTH)
             rand_center_y = random.randrange(SCREEN_HEIGHT)
@@ -275,6 +328,73 @@ class MyGame(arcade.Window):
             self.player1.player_list.update()
             arcade.play_sound(self.game_over_sound, GAMEOVER_SOUND)
             self.game_over = True
+
+    # Checks how many bugs the player has debugged
+    def check_debugs(self):
+
+        # Double check for not changing when getting to round 3
+        if self.actual_round == 3:
+            self.actual_round = 3
+
+        # Updates rounds based on enemies killed
+        if self.score >= 15:
+            self.actual_round = 1
+        else:
+            self.actual_round = 0
+
+    # Updates the round of the game and the gameplay of it
+    def update_round(self):
+
+        # Check for number of bugs killed
+        self.check_debugs()
+
+        self.bug_enemy.bug_list.update()
+
+        # Makes the bugs follow the player
+        i = 0
+        while i < self.bug_enemy.count:
+            self.bug_enemy.followSprite(self.player1.player_sprite, self.bug_enemy.bug_list[i])
+            i += 1
+
+        # Based on round, spawn enemies in way way or another
+        if self.actual_round == 0:
+            # Spawn enemies randomly. If there are more than 10 do not spawn more.
+            if random.random() < 0.03 and self.bug_enemy.count < 10 and self.actual_round == 0:
+                self.bug_enemy.bugSprite()
+
+        elif self.actual_round == 1:
+            # Create 2 linux enemies
+            if self.count_linux < 2:
+                self.linux_enemy.linuxSprite(1)
+                self.linux_enemy.linuxSprite(0)
+                self.count_linux = 2
+
+            for linux in self.linux_enemy.linux_list:
+
+                if random.random() < 0.01:
+                    self.linux_enemy.shoot_player(1, linux)
+                    self.linux_enemy.shoot_player(0, linux)
+                    self.linux_enemy.linux_bullet_list.update()
+
+        elif self.actual_round == 3:
+
+            # Will spawn both enemies and last man standing is the goal now.
+            # Spawn enemies randomly. If there are more than 10 do not spawn more.
+            if random.random() < 0.04 and self.bug_enemy.count < 13:
+                self.bug_enemy.bugSprite()
+
+            # Create 2 linux enemies
+            if self.count_linux < 2:
+                self.linux_enemy.linuxSprite(1)
+                self.linux_enemy.linuxSprite(0)
+                self.count_linux = 2
+
+            for linux in self.linux_enemy.linux_list:
+
+                if random.random() < 0.01:
+                    self.linux_enemy.shoot_player(1, linux)
+                    self.linux_enemy.shoot_player(0, linux)
+                    self.linux_enemy.linux_bullet_list.update()
 
 
 def main():
