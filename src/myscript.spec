@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['myscript.py'],
-             pathex=['/Users/lutelillo/Desktop/RimboRogueGame2D/src'],
+             pathex=['/Users/lutelillo/Desktop/DebugTheBug/src'],
              binaries=[],
              datas=[],
              hiddenimports=[],

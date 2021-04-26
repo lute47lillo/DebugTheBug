@@ -30,6 +30,30 @@ COLLISION_SOUND = 0.15
 GAMEOVER_SOUND = 0.4
 
 
+class InstructionView(arcade.View):
+
+    # View to start the game
+    def on_show(self):
+
+        arcade.set_background_color(arcade.csscolor.LIME_GREEN)
+
+        # Reset
+        arcade.set_viewport(0, SCREEN_WIDTH - 1, 0, SCREEN_HEIGHT - 1)
+
+    def on_draw(self):
+        arcade.start_render()
+        arcade.draw_text("Debug The Bug", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
+                         arcade.color.WHITE, font_size=50, anchor_x="center")
+        arcade.draw_text("Click to play", SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2-75,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+
+    # If the user presses the mousse button, start the game
+    def on_mouse_press(self, _x, _y, _button, _modifiers):
+        game_view = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+        game_view.setup()
+        self.window.show_view(game_view)
+
+
 class MyGame(arcade.Window):
 
     def __init__(self, width, height, title):
@@ -408,8 +432,12 @@ class MyGame(arcade.Window):
 
 def main():
     """ Main method """
-    game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    game.setup()
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    start_view = InstructionView()
+    window.show_view(start_view)
+
+    #game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
+    #game.setup()
     arcade.run()
 
 
