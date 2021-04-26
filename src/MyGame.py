@@ -219,10 +219,11 @@ class MyGame(arcade.Window):
         self.total_time += delta_time
 
         # Start timer for booster. Disappears after x seconds
-        start_booster = self.coffee_booster(self.total_time)
-        stop_booster = start_booster + 15
+        self.coffee_booster()
+
         if self.boosted:
-            if self.total_time > stop_booster:
+
+            if random.randrange(0, 500, 1) == 47:
                 self.boosted = False
                 self.boost_list.pop().remove_from_sprite_lists()
 
@@ -244,7 +245,7 @@ class MyGame(arcade.Window):
     # Get collisions of bugs with player
     def check_bug_collision(self):
         for bugs in self.bug_enemy.bug_list:
-            if arcade.check_for_collision(bugs, self.player1.player_sprite) and not self.game_over:
+            if arcade.check_for_collision(bugs, self.player1.player_sprite) and not self.game_over and not self.boosted:
                 arcade.play_sound(self.collision_player_sound)
                 self.player_health_list.pop().remove_from_sprite_lists()
                 self.bug_enemy.count -= 1
@@ -308,14 +309,14 @@ class MyGame(arcade.Window):
         time.sleep(0.03)
 
     # Spawn coffee booster
-    def coffee_booster(self, actual_time):
+    def coffee_booster(self):
 
-        now = 0
+
         image_source = "/Users/lutelillo/Desktop/DebugTheBug/lib/python3.8/" \
                        "site-packages/arcade/resources/images/createdSprites/coffee_boost.png"
 
         # Create the booster
-        if self.actual_round == 1 and self.coffee_count < 1:
+        if self.actual_round == 0 and self.coffee_count < 1:
             self.coffee_sprite = arcade.Sprite(image_source, BOOSTER_SCALING)
             rand_center_x = random.randrange(SCREEN_WIDTH)
             rand_center_y = random.randrange(SCREEN_HEIGHT)
@@ -330,7 +331,6 @@ class MyGame(arcade.Window):
                 arcade.play_sound(self.pick_booster_sound)
                 self.coffee_list.pop().remove_from_sprite_lists()
                 self.boosted = True
-                now = actual_time
 
                 # Create visual aid to indicate that the booster has been picked up
                 boost_source = "/Users/lutelillo/Desktop/DebugTheBug/lib/python3.8/" \
@@ -340,8 +340,6 @@ class MyGame(arcade.Window):
                 self.booster_sprite.center_x = 50
                 self.booster_sprite.center_y = SCREEN_HEIGHT - 50
                 self.boost_list.append(self.booster_sprite)
-
-        return now
 
     # Creates the visual aid for the remaining lives of the player
     def players_health(self):
@@ -435,9 +433,6 @@ def main():
     window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
     start_view = InstructionView()
     window.show_view(start_view)
-
-    #game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
-    #game.setup()
     arcade.run()
 
 
