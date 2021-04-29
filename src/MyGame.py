@@ -116,6 +116,7 @@ class MyGame(arcade.Window):
         self.current_player = None
         self.music = None
 
+    # Creates the game and sets it up for running it
     def setup(self):
 
         # Create a map
@@ -149,6 +150,7 @@ class MyGame(arcade.Window):
 
         self.game_over_sound = arcade.load_sound(":resources:sounds/gameover2.wav")
 
+    # Draws on-screen all the in-game action
     def on_draw(self):
 
         # This command should happen before we start drawing. It will clear
@@ -185,6 +187,7 @@ class MyGame(arcade.Window):
         self.coffee_list.draw()
         self.boost_list.draw()
 
+    # Updates the game constantly
     def on_update(self, delta_time):
 
         # Update the basic engine when keys are pressed.
@@ -311,12 +314,11 @@ class MyGame(arcade.Window):
     # Spawn coffee booster
     def coffee_booster(self):
 
-
         image_source = "/Users/lutelillo/Desktop/DebugTheBug/lib/python3.8/" \
                        "site-packages/arcade/resources/images/createdSprites/coffee_boost.png"
 
         # Create the booster
-        if self.actual_round == 0 and self.coffee_count < 1:
+        if self.actual_round == 1 and self.coffee_count < 1:
             self.coffee_sprite = arcade.Sprite(image_source, BOOSTER_SCALING)
             rand_center_x = random.randrange(SCREEN_WIDTH)
             rand_center_y = random.randrange(SCREEN_HEIGHT)
@@ -354,9 +356,9 @@ class MyGame(arcade.Window):
             self.player_health_list.append(self.player_health_sprite)
             offset += 25
 
+    # Check health of player
     def check_player_life(self):
 
-        # Check health of player
         if self.player_health == 0 and not self.game_over:
             self.player1.player_sprite.remove_from_sprite_lists()
             self.player1.player_list.update()

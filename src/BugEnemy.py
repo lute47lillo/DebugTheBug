@@ -2,7 +2,7 @@ import arcade
 import random
 import math
 
-
+# Attributes
 SCREEN_WIDTH = 1324
 SCREEN_HEIGHT = 796
 CHARACTER_SCALING = 0.5

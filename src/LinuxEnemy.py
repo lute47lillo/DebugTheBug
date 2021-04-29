@@ -1,5 +1,4 @@
 import arcade
-import random
 import math
 
 from src.RimboPlayer import RimboPlayer
@@ -32,6 +31,7 @@ class LinuxEnemy:
         player = RimboPlayer()
         self.player = player
 
+    # Creates the linux enemy and positions it
     def linuxSprite(self, position):
 
         self.exist = 1
@@ -69,6 +69,7 @@ class LinuxEnemy:
             if enemy.center_y < 25:
                 self.direction = 1
 
+    # Creates the asterisk bullet and shoots horizontally from the enemies position to hit the player
     def shoot_player(self, n, linux):
 
         image_source = "/Users/lutelillo/Desktop/DebugTheBug/lib/python3.8/" \
@@ -80,6 +81,7 @@ class LinuxEnemy:
 
         self.linux_isShooting = True
 
+        # Creates the shots for the 2 different enemies depending where they are located
         if n == 1:
             self.linux_bullet.angle = -90
             self.linux_bullet.change_x = +2

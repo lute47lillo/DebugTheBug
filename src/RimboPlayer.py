@@ -3,6 +3,7 @@ import math
 
 from src.BugEnemy import BugEnemy
 
+# Attributes
 SCREEN_WIDTH = 1324
 SCREEN_HEIGHT = 796
 CHARACTER_SCALING = 0.5
