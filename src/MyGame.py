@@ -54,10 +54,10 @@ class InstructionView(arcade.View):
         self.window.show_view(game_view)
 
 
-class MyGame(arcade.Window):
+class MyGame(arcade.View):
 
     def __init__(self, width, height, title):
-        super().__init__(width, height, title)
+        super().__init__()
 
         # Create the player
         player1 = RimboPlayer()

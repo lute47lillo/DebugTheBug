@@ -52,6 +52,7 @@ class RimboPlayer:
         self.player_sprite.center_y = 380
 
         self.player_list.append(self.player_sprite)
+        self.player_sprite.speed = 0
 
     # Need to separate in two methods, init the sprite and then update the sprite of shooting
     def blasterSprite(self, blaster_center_x, blaster_center_y):
